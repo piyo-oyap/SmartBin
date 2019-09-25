@@ -8,10 +8,10 @@
 #define MAX 200
 #define BIOSAMPLES 3
 
-int range_cm, range1_cm, bio = 0;
+int bin1, bin2, bio = 0;
 int temp, humid;
 bool cap, ind;
-char str[32];
+char strTemp1[32],strTemp2[32];
 const char * phoneNum = "0999999999";
 const char * cmd[] = {"TRASH", "TESTS"};
 

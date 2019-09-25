@@ -1,3 +1,8 @@
+//gsm connected to seril3
+//init gsm communication
+
+
+
 #include <dht.h>
 #include <SoftwareSerial.h>
 #include <Servo.h>
@@ -7,23 +12,21 @@
 
 dht DHT;
 Servo servo;
-NewPing range(pinUSonic::echo1, pinUSonic::trig1,MAX);
+NewPing range2(pinUSonic::echo1, pinUSonic::trig1,MAX);
 NewPing range1(pinUSonic::echo2, pinUSonic::trig2,MAX);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-//int range_cm, range1_cm, bio = 0;
-//int temp, humid;
-//bool cap, ind;
-//char str[32];
-
 void setup() {
-  Serial.begin(9600);
-//  dht.begin();
   lcd.begin();
   lcd.clear();
   lcd.backlight();
-  lcd.print("Boot");
+  lcdPrint("   SMART BIN    ","BOOTING UP . . .");
+  Serial.begin(9600);
   servo.attach(pinServo);
+  pinMode(46,INPUT);
+  pinMode(47,INPUT);
+  pinMode(48,INPUT);
+  pinMode(49,INPUT);
 
 }
 
@@ -33,21 +36,17 @@ void loop() {
     temp = DHT.temperature;
     humid = DHT.humidity;
   }
-  range_cm = 200-range.ping_cm();
-  range1_cm = 200-range1.ping_cm();
-  cap = !digitalRead(6);
-  ind = digitalRead(5);
-  sprintf(str,"%d %d %d %d",range_cm, range1_cm, cap, ind);
-//  Serial.println(String(temp) + "\t" + String(humid));
-  Serial.println(str);
-  lcdPrint();
-  servo.write(90);
+  bin1 = map(range1.ping_cm(),10,45,100,0);
+  delay(100);
+  bin2 = map(range2.ping_cm(),10,45,100,0);
+  sprintf(strTemp1,"  %3d%s   %3d%s   ",bin1,"%", bin2,"%");
+  sprintf(strTemp2,"   %2dc    %2d%s   ",temp, humid,"%");
+  lcdPrint(strTemp1, strTemp2);
+  Serial.println(String(temp) + "\t" + String(humid));
   while(!digitalRead(ir1) || !digitalRead(ir2)){
     bio = 0;
     for(int i=0; i<=BIOSAMPLES; i++){
-      cap = !digitalRead(6);
-      ind = digitalRead(5);
-      if(cap||ind){
+      if(isBio()){
         bio--;
       }else{
         bio++;
@@ -58,16 +57,20 @@ void loop() {
       if(bio<=-BIOSAMPLES){
         lcdPrint("Garbage detected", "NonBiodegradable");
         Serial.println("Non Biodegradable");
-        servo.write(plate::nonbio);
-        while(!digitalRead(40)) {}
+        servo.write(plate::nonbio-35);
+        while(!digitalRead(ir1)||!digitalRead(ir2));
         delay(2000);
+        servo.write(plate::nonbio);
+        delay(1000);
         servo.write(plate::flat);
       }else if(bio>=BIOSAMPLES){
         lcdPrint("Garbage detected", "Biodegradable");
         Serial.println("Biodegradable");
-        servo.write(plate::bio);
-        while(!digitalRead(40)) {}
+        servo.write(plate::bio+35);
+        while(!digitalRead(ir1)||!digitalRead(ir2));
         delay(2000);
+        servo.write(plate::bio);
+        delay(1000);
         servo.write(plate::flat);
       }
       bio = 0;
@@ -85,19 +88,8 @@ void lcdPrint(char * str1, char * str2) {
   lcd.print(str2);
 }
 
-void lcdPrint(){
-  lcd.setCursor(0,0);
-  sprintf(str,"%3d%s %3d%s        ",range_cm, "%", range1_cm, "%");
-  lcd.print(str);
-  lcd.setCursor(0,1);
-  sprintf(str,"%3dc %3d%s        ", temp, humid,"%");
-  lcd.print(str);
-}
 
-bool isInductive() {
-
-}
-
-bool isCapacitive() {
-  
+bool isBio(){
+  if(digitalRead(46)||digitalRead(47)||!digitalRead(48)||!digitalRead(49)) return true;
+  else return false;
 }
