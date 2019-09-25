@@ -22,12 +22,12 @@ void setup() {
   lcd.clear();
   lcd.backlight();
   lcd.print("Boot");
-  servo.attach(servoPin);
+  servo.attach(pinServo);
 
 }
 
 void loop() {
-  DHT.read11(dhtPin);
+  DHT.read11(pinDht);
   if(DHT.temperature>0 && DHT.humidity>0){
     temp = DHT.temperature;
     humid = DHT.humidity;
