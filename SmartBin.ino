@@ -4,6 +4,7 @@
 #include <LiquidCrystal_I2C.h>
 
 #define MAX 200
+#define BIOSAMPLES 3
 
 dht DHT;
 Servo servo;
@@ -43,7 +44,7 @@ void loop() {
   servo.write(90);
   while(!digitalRead(40)){
     bio = 0;
-    for(int i=0; i<=3; i++){
+    for(int i=0; i<=BIOSAMPLES; i++){
       cap = !digitalRead(6);
       ind = digitalRead(5);
       if(cap||ind){
@@ -53,13 +54,21 @@ void loop() {
       }
       delay(250);
     }
-    if(bio<=-3||bio>=3){
-      if(bio<=-3){
+    if(bio<=-BIOSAMPLES||bio>=BIOSAMPLES){
+      if(bio<=-BIOSAMPLES){
+        lcdPrint("Garbage detected", "NonBiodegradable");
         Serial.println("Non Biodegradable");
         servo.write(150);
-      }else if(bio>=3){
+        while(!digitalRead(40)) {}
+        delay(2000);
+        servo.write(90);
+      }else if(bio>=BIOSAMPLES){
+        lcdPrint("Garbage detected", "Biodegradable");
         Serial.println("Biodegradable");
         servo.write(30);
+        while(!digitalRead(40)) {}
+        delay(2000);
+        servo.write(90);
       }
       bio = 0;
     } 
@@ -67,6 +76,13 @@ void loop() {
   
   delay(250);
 
+}
+
+void lcdPrint(char * str1, char * str2) {
+  lcd.setCursor(0,0);
+  lcd.print(str1);
+  lcd.setCursor(0,1);
+  lcd.print(str2);
 }
 
 void lcdPrint(){
