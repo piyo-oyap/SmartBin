@@ -2,9 +2,7 @@
 #include <Servo.h>
 #include <NewPing.h>
 #include <LiquidCrystal_I2C.h>
-
-#define MAX 200
-#define BIOSAMPLES 3
+#include "constants.h"
 
 dht DHT;
 Servo servo;
@@ -12,10 +10,10 @@ NewPing range(36,37,MAX);
 NewPing range1(38,39,MAX);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
-int range_cm, range1_cm, bio = 0;
-int temp, humid;
-bool cap, ind;
-char str[32];
+//int range_cm, range1_cm, bio = 0;
+//int temp, humid;
+//bool cap, ind;
+//char str[32];
 
 void setup() {
   Serial.begin(9600);
@@ -23,12 +21,13 @@ void setup() {
   lcd.begin();
   lcd.clear();
   lcd.backlight();
-  servo.attach(2);
+  lcd.print("Boot");
+  servo.attach(servoPin);
 
 }
 
 void loop() {
-  DHT.read11(41);
+  DHT.read11(dhtPin);
   if(DHT.temperature>0 && DHT.humidity>0){
     temp = DHT.temperature;
     humid = DHT.humidity;
