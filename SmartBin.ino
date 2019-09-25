@@ -1,4 +1,5 @@
 #include <dht.h>
+#include <SoftwareSerial.h>
 #include <Servo.h>
 #include <NewPing.h>
 #include <LiquidCrystal_I2C.h>
@@ -6,8 +7,8 @@
 
 dht DHT;
 Servo servo;
-NewPing range(36,37,MAX);
-NewPing range1(38,39,MAX);
+NewPing range(pinUSonic::echo1, pinUSonic::trig1,MAX);
+NewPing range1(pinUSonic::echo2, pinUSonic::trig2,MAX);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 //int range_cm, range1_cm, bio = 0;
@@ -41,7 +42,7 @@ void loop() {
   Serial.println(str);
   lcdPrint();
   servo.write(90);
-  while(!digitalRead(40)){
+  while(!digitalRead(ir1) || !digitalRead(ir2)){
     bio = 0;
     for(int i=0; i<=BIOSAMPLES; i++){
       cap = !digitalRead(6);
@@ -57,17 +58,17 @@ void loop() {
       if(bio<=-BIOSAMPLES){
         lcdPrint("Garbage detected", "NonBiodegradable");
         Serial.println("Non Biodegradable");
-        servo.write(150);
+        servo.write(plate::nonbio);
         while(!digitalRead(40)) {}
         delay(2000);
-        servo.write(90);
+        servo.write(plate::flat);
       }else if(bio>=BIOSAMPLES){
         lcdPrint("Garbage detected", "Biodegradable");
         Serial.println("Biodegradable");
-        servo.write(30);
+        servo.write(plate::bio);
         while(!digitalRead(40)) {}
         delay(2000);
-        servo.write(90);
+        servo.write(plate::flat);
       }
       bio = 0;
     } 
@@ -91,4 +92,12 @@ void lcdPrint(){
   lcd.setCursor(0,1);
   sprintf(str,"%3dc %3d%s        ", temp, humid,"%");
   lcd.print(str);
+}
+
+bool isInductive() {
+
+}
+
+bool isCapacitive() {
+  
 }
